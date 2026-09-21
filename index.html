@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aqua Health Checker — Test • Analyze • Monitor • Protect</title>
+  <meta name="description" content="Community-driven Water Quality Intelligence Platform for testing, analyzing, and monitoring drinking water sources based on WHO and BIS 10500 standards.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet.js CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white transition-colors duration-300">
+
+  <!-- =========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================= -->
+  <nav class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800/80 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Brand -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.app.switchView('view-dashboard')">
+          <div class="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-500 text-white shadow-lg shadow-cyan-500/25 animate-ripple">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-lg sm:text-xl tracking-tight text-gradient-cyan" data-i18n="app_title">Aqua Health Checker</span>
+              <span class="hidden md:inline-block text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">v2.0 Pro</span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 -mt-0.5 tracking-wide hidden sm:block" data-i18n="tagline">Test • Analyze • Monitor • Protect</p>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden lg:flex items-center gap-1 font-medium text-sm">
+          <button onclick="window.app.switchView('view-dashboard')" class="nav-link px-3.5 py-2 rounded-xl text-cyan-600 dark:text-cyan-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-view="view-dashboard" data-i18n="nav_dashboard">
+            Dashboard
+          </button>
+          <button onclick="window.app.switchView('view-new-test')" class="nav-link px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-view="view-new-test" data-i18n="nav_new_test">
+            New Test
+          </button>
+          <button onclick="window.app.switchView('view-map-db')" class="nav-link px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-view="view-map-db" data-i18n="nav_map_db">
+            Water Database
+          </button>
+          <button onclick="window.app.switchView('view-analytics')" class="nav-link px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-view="view-analytics" data-i18n="nav_analytics">
+            Analytics
+          </button>
+          <button onclick="window.app.switchView('view-academy')" class="nav-link px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-view="view-academy" data-i18n="nav_academy">
+            Water Academy
+          </button>
+        </div>
+
+        <!-- Utility Toolbar (Language, Dark Mode, Quick CTA) -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Language Switcher -->
+          <div class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-xs font-semibold">
+            <button onclick="window.app.setLanguage('en')" data-lang="en" class="lang-btn px-2 py-1 rounded-lg transition-all bg-cyan-500 text-white shadow-sm">EN</button>
+            <button onclick="window.app.setLanguage('hi')" data-lang="hi" class="lang-btn px-2 py-1 rounded-lg text-slate-600 dark:text-slate-300 transition-all">हिंदी</button>
+            <button onclick="window.app.setLanguage('mr')" data-lang="mr" class="lang-btn px-2 py-1 rounded-lg text-slate-600 dark:text-slate-300 transition-all">मराठी</button>
+          </div>
+
+          <!-- Dark/Light Mode Toggle -->
+          <button onclick="window.app.toggleTheme()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="Toggle Theme" aria-label="Toggle Theme">
+            <svg class="theme-icon-sun w-5 h-5 hidden text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <svg class="theme-icon-moon w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+
+          <!-- Quick Test Action Button -->
+          <button onclick="window.app.switchView('view-new-test')" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs tracking-wide shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/35 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span data-i18n="btn_quick_test">Quick Test (<30s)</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- =========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-12">
+
+    <!-- =======================================================================
+         VIEW 1: HOME DASHBOARD
+         ======================================================================= -->
+    <section id="view-dashboard" class="app-view space-y-8">
+      
+      <!-- Hero Glass Card -->
+      <div class="relative overflow-hidden rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-cyan-950 via-slate-900 to-blue-950 border border-cyan-500/20 shadow-2xl text-white">
+        <div class="absolute -right-16 -top-16 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 max-w-3xl space-y-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold tracking-wide">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            BIS 10500 : 2012 & WHO Water Intelligence
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight font-heading" data-i18n="hero_title">
+            Clean Water for Every Citizen
+          </h1>
+          <p class="text-sm sm:text-base text-slate-300 leading-relaxed font-normal" data-i18n="hero_desc">
+            Empowering communities to test, track, and protect drinking water sources using WHO and BIS standards. Instant scientific diagnosis in under 30 seconds.
+          </p>
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <button onclick="window.app.switchView('view-new-test')" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-cyan-500/25 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span data-i18n="hero_cta_test">Start 30-Sec Water Test</span>
+            </button>
+            <button onclick="window.app.switchView('view-map-db')" class="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm backdrop-blur-md transition-all flex items-center gap-2">
+              <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span data-i18n="hero_cta_explore">Explore Community Map</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time KPI Stats Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        <!-- Total Tests -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold" data-i18n="stat_total_tests">Total Tests</span>
+            <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 dark:text-white" id="stat-total-tests">0</div>
+        </div>
+
+        <!-- Sources Monitored -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold" data-i18n="stat_sources_monitored">Sources Monitored</span>
+            <div class="p-2 rounded-xl bg-blue-500/10 text-blue-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 dark:text-white" id="stat-sources-monitored">0</div>
+        </div>
+
+        <!-- Safe Sources -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold" data-i18n="stat_safe_sources">Safe Sources</span>
+            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold font-heading text-emerald-600 dark:text-emerald-400" id="stat-safe-sources">0</div>
+        </div>
+
+        <!-- Unsafe Sources -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold" data-i18n="stat_unsafe_sources">Unsafe / Action</span>
+            <div class="p-2 rounded-xl bg-rose-500/10 text-rose-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold font-heading text-rose-600 dark:text-rose-400" id="stat-unsafe-sources">0</div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="col-span-2 lg:col-span-1 glass-panel p-4 sm:p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold" data-i18n="stat_avg_wqi">Avg Community Score</span>
+            <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold font-heading text-cyan-600 dark:text-cyan-400" id="stat-avg-wqi">0 / 100</div>
+        </div>
+
+      </div>
+
+      <!-- Community Water Map Preview Section -->
+      <div class="glass-panel p-5 sm:p-6 rounded-3xl border border-slate-200/70 dark:border-slate-800 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-lg sm:text-xl font-bold font-heading text-slate-900 dark:text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+              <span data-i18n="sec_quick_overview">Community Water Pulse & Geolocation Map</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Click any marker pin to inspect the source health score, TDS, pH, and historical records</p>
+          </div>
+          <button onclick="window.app.switchView('view-map-db')" class="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span data-i18n="btn_view_all">View All Database</span> &rarr;
+          </button>
+        </div>
+        
+        <!-- Leaflet Map Container -->
+        <div id="community-map" class="w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700/80 shadow-inner z-0"></div>
+      </div>
+
+      <!-- 2-Column Split: Recent Tests vs Top Monitored Sources -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Recent Tests Feed -->
+        <div class="glass-panel p-5 sm:p-6 rounded-3xl border border-slate-200/70 dark:border-slate-800 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span data-i18n="sec_recent_tests">Recent Water Tests</span>
+            </h3>
+            <button onclick="window.app.switchView('view-new-test')" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-colors">
+              + New Test
+            </button>
+          </div>
+          <div id="recent-tests-list" class="space-y-3">
+            <!-- Dynamic feed rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Most Monitored Sources -->
+        <div class="glass-panel p-5 sm:p-6 rounded-3xl border border-slate-200/70 dark:border-slate-800 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+              <span data-i18n="sec_top_sources">Most Monitored Sources</span>
+            </h3>
+            <button onclick="window.app.switchView('view-map-db')" class="text-xs font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+              Filter by Area
+            </button>
+          </div>
+          <div id="top-sources-list" class="space-y-3">
+            <!-- Dynamic list rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Educational Quick Start Guide -->
+      <div class="space-y-4">
+        <h3 class="font-bold text-xl font-heading text-slate-900 dark:text-white flex items-center gap-2" data-i18n="sec_educational_cards">
+          <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+          Water Science Essentials
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          
+          <!-- Card 1: TDS -->
+          <div class="glass-panel p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 space-y-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold text-xs">TDS</div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="card_tds_title">What is TDS?</h4>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed" data-i18n="card_tds_what">Total Dissolved Solids refers to inorganic mineral salts (calcium, magnesium, sodium) in water.</p>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] font-semibold text-cyan-700 dark:text-cyan-300" data-i18n="card_tds_range">
+              Ideal: 50-300 ppm | Max (BIS): 500 ppm
+            </div>
+          </div>
+
+          <!-- Card 2: pH -->
+          <div class="glass-panel p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 space-y-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">pH</div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="card_ph_title">What is pH?</h4>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed" data-i18n="card_ph_what">pH measures how acidic or alkaline water is on a 0-14 scale. 7.0 is neutral.</p>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300" data-i18n="card_ph_range">
+              Safe Drinking Range: 6.5 to 8.5
+            </div>
+          </div>
+
+          <!-- Card 3: Quality Standards -->
+          <div class="glass-panel p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 space-y-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xs">BIS</div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white" data-i18n="card_standards_title">BIS 10500 Standards</h4>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Mandatory Indian national benchmarks for potable tap and groundwater quality safety.</p>
+            <button onclick="window.app.switchView('view-academy')" class="w-full text-center text-xs font-semibold py-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition-colors">
+              Open Interactive Simulator &rarr;
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =======================================================================
+         VIEW 2: WATER TESTING MODULE
+         ======================================================================= -->
+    <section id="view-new-test" class="app-view hidden max-w-4xl mx-auto space-y-6">
+      
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/70 dark:border-slate-800 shadow-xl space-y-6">
+        
+        <!-- Header -->
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-bold mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span data-i18n="btn_quick_test">Rapid 30-Second Assessment</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 dark:text-white" data-i18n="form_title">
+            Water Quality Assessment Form
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1" data-i18n="form_subtitle">
+            Input your water physical and chemical parameters for instant scientific analysis
+          </p>
+        </div>
+
+        <!-- Form -->
+        <form id="water-test-form" class="space-y-6">
+          
+          <!-- Section 1: Source & Location Metadata -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+            <!-- Source Name -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-source-name" data-i18n="lbl_source_name">
+                Water Source Name *
+              </label>
+              <input type="text" id="input-source-name" required placeholder="e.g. Chicholi Main Well, Ward 4 Tap" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+            </div>
+
+            <!-- Source Type -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-source-type" data-i18n="lbl_source_type">
+                Source Type *
+              </label>
+              <select id="input-source-type" required class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                <option value="tap" data-i18n="opt_tap">Municipal Tap Water (नळाचे पाणी)</option>
+                <option value="well" data-i18n="opt_well">Open Well (विहीर)</option>
+                <option value="borewell" data-i18n="opt_borewell">Borewell / Tube Well (बोअरवेल)</option>
+                <option value="filtered" data-i18n="opt_filtered">Filtered / RO Water (शुद्ध केलेले पाणी)</option>
+                <option value="gov_tank" data-i18n="opt_gov_tank">Govt Overhead Tank (सरकारी टाकी)</option>
+                <option value="river" data-i18n="opt_river">River / Stream (नदी / ओढा)</option>
+                <option value="lake" data-i18n="opt_lake">Lake / Pond (तलाव)</option>
+                <option value="tanker" data-i18n="opt_tanker">Water Tanker (टँकरचे पाणी)</option>
+                <option value="other" data-i18n="opt_other">Other Source</option>
+              </select>
+            </div>
+
+            <!-- Location Name -->
+            <div class="space-y-1.5 md:col-span-2">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-location" data-i18n="lbl_location">
+                  Location / Village / Ward
+                </label>
+                <span id="display-coords" class="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">18.6298° N, 73.7997° E</span>
+              </div>
+              <div class="flex gap-2">
+                <input type="text" id="input-location" placeholder="e.g. Chicholi Village, Haveli, Pune" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                <button type="button" onclick="window.aquaMap.detectUserLocation()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-cyan-600 dark:text-cyan-400 text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors" title="Auto detect location using GPS">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  <span class="hidden sm:inline" data-i18n="btn_detect_gps">GPS</span>
+                </button>
+                <button type="button" onclick="window.app.openLocationPicker()" class="px-3.5 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors" title="Open Map Picker">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                  <span class="hidden sm:inline" data-i18n="btn_set_on_map">Pick Map</span>
+                </button>
+              </div>
+              <input type="hidden" id="input-lat" value="18.6298">
+              <input type="hidden" id="input-lng" value="73.7997">
+            </div>
+
+          </div>
+
+          <!-- Section 2: Physical & Chemical Parameters -->
+          <div class="p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-5">
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+              Key Water Quality Parameters
+            </h4>
+
+            <!-- TDS -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-tds" data-i18n="lbl_tds">TDS (Total Dissolved Solids)</label>
+                  <p class="text-[11px] text-slate-400" data-i18n="hint_tds">Ideal: 50-300 ppm | Max Acceptable: 500 ppm</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <input type="number" id="input-tds" value="180" min="0" max="3000" step="5" class="w-24 px-3 py-1.5 text-right font-mono font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                  <span class="text-xs text-slate-500 font-mono">ppm</span>
+                </div>
+              </div>
+              <input type="range" id="slider-tds" min="10" max="1800" step="5" value="180" class="w-full tds-slider-track">
+              <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                <span>0 (Pure)</span>
+                <span>300 (Good)</span>
+                <span>500 (Acceptable)</span>
+                <span>1200+ (Unsafe)</span>
+              </div>
+            </div>
+
+            <!-- pH Level -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-ph" data-i18n="lbl_ph">pH Level</label>
+                  <p class="text-[11px] text-slate-400" data-i18n="hint_ph">Safe Drinking Range: 6.5 - 8.5</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <input type="number" id="input-ph" value="7.2" min="0" max="14" step="0.1" class="w-24 px-3 py-1.5 text-right font-mono font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                  <span class="text-xs text-slate-500 font-mono">pH</span>
+                </div>
+              </div>
+              <input type="range" id="slider-ph" min="3" max="11" step="0.1" value="7.2" class="w-full ph-slider-track">
+              <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                <span class="text-rose-400">Acidic (&lt;6.5)</span>
+                <span class="text-emerald-400 font-bold">7.0 (Neutral Safe)</span>
+                <span class="text-purple-400">Alkaline (&gt;8.5)</span>
+              </div>
+            </div>
+
+            <!-- Turbidity, Color & Odor Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              
+              <!-- Turbidity -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-turbidity" data-i18n="lbl_turbidity">Turbidity (NTU)</label>
+                <input type="number" id="input-turbidity" value="0.8" min="0" max="50" step="0.1" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono">
+                <p class="text-[10px] text-slate-400" data-i18n="hint_turbidity">Ideal: &lt; 1.0 NTU</p>
+              </div>
+
+              <!-- Water Color -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-color" data-i18n="lbl_color">Appearance / Color</label>
+                <select id="input-color" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  <option value="clear" data-i18n="opt_color_clear">Crystal Clear (स्वच्छ)</option>
+                  <option value="slightly_cloudy" data-i18n="opt_color_slightly_cloudy">Slightly Cloudy (किंचित गढूळ)</option>
+                  <option value="yellowish" data-i18n="opt_color_yellowish">Yellowish / Rust (पिवळसर)</option>
+                  <option value="brownish" data-i18n="opt_color_brownish">Brownish / Muddy (मातीचे)</option>
+                  <option value="greenish" data-i18n="opt_color_greenish">Greenish / Algae (शेवाळ)</option>
+                  <option value="milky" data-i18n="opt_color_milky">Milky / White (दुधाळ)</option>
+                </select>
+              </div>
+
+              <!-- Water Odor -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-odor" data-i18n="lbl_odor">Odor / Smell</label>
+                <select id="input-odor" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  <option value="none" data-i18n="opt_odor_none">Odorless (कोणताही वास नाही)</option>
+                  <option value="chlorine" data-i18n="opt_odor_chlorine">Chlorine / Bleach (क्लोरीन)</option>
+                  <option value="earthy" data-i18n="opt_odor_earthy">Earthy / Muddy (मातीचा वास)</option>
+                  <option value="sulfur" data-i18n="opt_odor_sulfur">Rotten Egg / Sulfur (सल्फर)</option>
+                  <option value="metallic" data-i18n="opt_odor_metallic">Metallic / Iron (लोखंडी)</option>
+                  <option value="chemical" data-i18n="opt_odor_chemical">Chemical / Sewage (सांडपाणी)</option>
+                </select>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Section 3: Metadata & Observations -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-date" data-i18n="lbl_test_date">Testing Date</label>
+              <input type="date" id="input-date" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-tester" data-i18n="lbl_tester_name">Tested By / Organization</label>
+              <input type="text" id="input-tester" placeholder="e.g. Health Volunteer, Ward Club" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm">
+            </div>
+            <div class="sm:col-span-2 space-y-1.5">
+              <label class="text-xs font-bold text-slate-700 dark:text-slate-300" for="input-notes" data-i18n="lbl_notes">Observations / Field Notes</label>
+              <textarea id="input-notes" rows="2" placeholder="e.g. Tested after heavy rainfall; clear water; no foul smell..." class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm"></textarea>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="flex flex-col sm:flex-row items-center gap-3 pt-3">
+            <button type="submit" class="w-full sm:flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-xl shadow-cyan-500/25 transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span data-i18n="btn_analyze_now">Analyze Water Health Now</span>
+            </button>
+            <button type="reset" class="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-colors" data-i18n="btn_reset_form">
+              Reset Form
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </section>
+
+    <!-- =======================================================================
+         VIEW 3: COMMUNITY WATER DATABASE & SEARCH
+         ======================================================================= -->
+    <section id="view-map-db" class="app-view hidden space-y-6">
+      
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/70 dark:border-slate-800 space-y-6">
+        
+        <!-- Header & Action Buttons -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+          <div>
+            <h2 class="text-2xl font-extrabold font-heading text-slate-900 dark:text-white" data-i18n="db_title">
+              Community Water Sources Database
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1" data-i18n="db_subtitle">
+              Public repository of water tests conducted across villages, wards, and water bodies
+            </p>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="window.waterStorage.exportCSV()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              <span data-i18n="btn_export_csv">CSV</span>
+            </button>
+            <button onclick="window.waterStorage.exportJSON()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors">
+              <svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+              <span data-i18n="btn_export_json">JSON</span>
+            </button>
+            <label class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer">
+              <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              <span data-i18n="btn_import_data">Import</span>
+              <input type="file" id="import-file-input" accept=".json" class="hidden">
+            </label>
+            <button onclick="window.waterStorage.seedDefaultData(); window.app.updateStats(); window.app.renderDatabaseTable(); window.app.showToast('Demo data reloaded', 'info');" class="px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-xs font-semibold text-cyan-600 dark:text-cyan-400 transition-colors" data-i18n="btn_reset_sample">
+              Reset Demo
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Search Bar & Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          
+          <!-- Search input -->
+          <div class="md:col-span-2 relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" id="global-search-input" placeholder="Search village, area, source name, or type..." class="w-full pl-10 pr-12 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500" data-i18n="search_placeholder">
+            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[10px] font-mono text-slate-400 pointer-events-none">Ctrl+K</span>
+          </div>
+
+          <!-- Source Type Filter -->
+          <div>
+            <select id="filter-source-type" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              <option value="all" data-i18n="filter_all_types">All Source Types</option>
+              <option value="tap">Tap Water</option>
+              <option value="well">Open Well</option>
+              <option value="borewell">Borewell</option>
+              <option value="river">River / Stream</option>
+              <option value="lake">Lake / Pond</option>
+              <option value="filtered">Filtered RO</option>
+              <option value="gov_tank">Govt Tank</option>
+              <option value="tanker">Water Tanker</option>
+            </select>
+          </div>
+
+          <!-- Quality Tier Filter -->
+          <div>
+            <select id="filter-quality" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              <option value="all" data-i18n="filter_all_quality">All Quality Tiers</option>
+              <option value="safe">Safe (Score ≥ 70)</option>
+              <option value="moderate">Moderate (Score 50-69)</option>
+              <option value="unsafe">Unsafe / Action (Score &lt; 50)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Filtered Count Display -->
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span id="filtered-count-display">Showing all records</span>
+        </div>
+
+        <!-- Database Table -->
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-slate-100/80 dark:bg-slate-900/80 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4" data-i18n="table_source_name">Source Name</th>
+                <th class="py-3.5 px-4" data-i18n="table_type">Type</th>
+                <th class="py-3.5 px-4" data-i18n="table_location">Location</th>
+                <th class="py-3.5 px-4" data-i18n="table_tds">TDS</th>
+                <th class="py-3.5 px-4" data-i18n="table_ph">pH</th>
+                <th class="py-3.5 px-4" data-i18n="table_turbidity">Turbidity</th>
+                <th class="py-3.5 px-4" data-i18n="table_score">Health Score</th>
+                <th class="py-3.5 px-4 text-right" data-i18n="table_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="database-table-body">
+              <!-- Dynamic Rows Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =======================================================================
+         VIEW 4: ANALYTICS & TRENDS
+         ======================================================================= -->
+    <section id="view-analytics" class="app-view hidden space-y-6">
+      
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/70 dark:border-slate-800 space-y-6">
+        
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
+          <h2 class="text-2xl font-extrabold font-heading text-slate-900 dark:text-white" data-i18n="analytics_title">
+            Water Intelligence Analytics
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1" data-i18n="analytics_subtitle">
+            Aggregated statistical insights, trend lines, and regional water quality monitoring
+          </p>
+        </div>
+
+        <!-- 4-Chart Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Chart 1: Quality Distribution -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="chart_distribution">Water Quality Classification Breakdown</h4>
+            <div class="h-64 relative">
+              <canvas id="chart-distribution"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Source Type Scores -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="chart_source_types">Average Water Score by Source Type</h4>
+            <div class="h-64 relative">
+              <canvas id="chart-source-types"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Timeline Trends (Multi-line) -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="chart_timeline_trends">Historical TDS & pH Fluctuations</h4>
+            <div class="h-64 relative">
+              <canvas id="chart-timeline-trends"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Radar Compliance -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="chart_radar">Parameter Standards Compliance (WHO/BIS baseline)</h4>
+            <div class="h-64 relative">
+              <canvas id="chart-radar-compliance"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =======================================================================
+         VIEW 5: WATER ACADEMY & INTERACTIVE SIMULATOR
+         ======================================================================= -->
+    <section id="view-academy" class="app-view hidden space-y-8">
+      
+      <!-- Interactive TDS & pH Simulator -->
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/30 dark:border-cyan-500/20 shadow-2xl space-y-6">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-bold mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            Interactive Learning Tool
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 dark:text-white" data-i18n="sim_title">
+            Interactive TDS & pH Water Simulator
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1" data-i18n="sim_subtitle">
+            Drag the sliders below to see live health impacts and recommended purification methods
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          
+          <!-- Sliders -->
+          <div class="space-y-6">
+            
+            <!-- Simulator TDS Slider -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-sm font-bold">
+                <span data-i18n="sim_tds_label">Simulate TDS Level:</span>
+                <span id="sim-tds-display" class="font-mono text-cyan-600 dark:text-cyan-400 text-base">220 ppm</span>
+              </div>
+              <input type="range" id="sim-tds-slider" min="10" max="1800" step="10" value="220" class="w-full tds-slider-track">
+              <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                <span>50 (Pristine)</span>
+                <span>300 (Good)</span>
+                <span>500 (Max Acceptable)</span>
+                <span>1200+ (Critical)</span>
+              </div>
+            </div>
+
+            <!-- Simulator pH Slider -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-sm font-bold">
+                <span data-i18n="sim_ph_label">Simulate pH Level:</span>
+                <span id="sim-ph-display" class="font-mono text-emerald-600 dark:text-emerald-400 text-base">7.4</span>
+              </div>
+              <input type="range" id="sim-ph-slider" min="4.0" max="10.5" step="0.1" value="7.4" class="w-full ph-slider-track">
+              <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                <span>4.0 (Corrosive Acid)</span>
+                <span>7.0 (Neutral)</span>
+                <span>10.5 (Caustic Base)</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Live Output Scorecard -->
+          <div class="p-6 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs text-slate-400 uppercase tracking-wider font-bold" data-i18n="sim_calculated_score">Live Water Score</span>
+                <div class="text-3xl font-black font-heading text-cyan-600 dark:text-cyan-400 mt-0.5" id="sim-score-display">
+                  88 / 100
+                </div>
+              </div>
+              <span id="sim-cat-display" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
+                Excellent
+              </span>
+            </div>
+
+            <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="sim_suitable_purifiers">Recommended Purification:</span>
+              <p id="sim-purifiers-display" class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
+                Standard direct consumption safe
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Water Standards Reference Matrix -->
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/70 dark:border-slate-800 space-y-5">
+        <h3 class="text-xl font-bold font-heading text-slate-900 dark:text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          BIS 10500 : 2012 Drinking Water Specification Standards
+        </h3>
+        
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 dark:bg-slate-800 uppercase font-bold text-slate-600 dark:text-slate-300">
+              <tr>
+                <th class="p-3">Characteristic</th>
+                <th class="p-3">Requirement (Acceptable Limit)</th>
+                <th class="p-3">Permissible Limit (Absence of Alternate)</th>
+                <th class="p-3">Health & Aesthetic Impact</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-600 dark:text-slate-400">
+              <tr>
+                <td class="p-3 font-semibold text-slate-900 dark:text-white">Total Dissolved Solids (TDS)</td>
+                <td class="p-3 font-mono">500 mg/L (ppm)</td>
+                <td class="p-3 font-mono">2000 mg/L (ppm)</td>
+                <td class="p-3">Bitter/salty taste, gastrointestinal irritation, scaling in pipework</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900 dark:text-white">pH Value</td>
+                <td class="p-3 font-mono">6.5 - 8.5</td>
+                <td class="p-3 font-mono">No relaxation</td>
+                <td class="p-3">Affects mucous membrane, pipe corrosion (<6.5) or encrustation (>8.5)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900 dark:text-white">Turbidity</td>
+                <td class="p-3 font-mono">1.0 NTU</td>
+                <td class="p-3 font-mono">5.0 NTU</td>
+                <td class="p-3">Protects microorganisms from chlorine disinfection; visual cloudiness</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900 dark:text-white">Odor</td>
+                <td class="p-3">Agreeable / None</td>
+                <td class="p-3">Agreeable</td>
+                <td class="p-3">Indicates bacterial decay, hydrogen sulfide, or chemical contamination</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       MODAL 1: ASSESSMENT RESULTS SCORECARD & REPORT
+       ========================================================================= -->
+  <div id="result-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden modal-backdrop">
+    <div class="glass-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 modal-content-animated">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div>
+          <span class="text-[11px] uppercase font-bold tracking-wider text-cyan-600 dark:text-cyan-400" data-i18n="res_subtitle">WHO Guidelines & BIS 10500 Diagnosis</span>
+          <h3 class="text-xl font-bold font-heading text-slate-900 dark:text-white" data-i18n="res_title">Water Quality Intelligence Report</h3>
+        </div>
+        <button onclick="window.app.closeResultModal()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Scorecard Hero Gauge & Badges -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+        
+        <!-- Circular Gauge -->
+        <div class="flex flex-col items-center justify-center">
+          <div class="relative w-28 h-28 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" class="text-slate-200 dark:text-slate-800 fill-transparent"></circle>
+              <circle id="res-score-circle" cx="50" cy="50" r="40" stroke="#06b6d4" stroke-width="8" stroke-linecap="round" class="score-circle fill-transparent" stroke-dasharray="251.2" stroke-dashoffset="50"></circle>
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center text-center">
+              <span id="res-score-value" class="text-2xl font-black font-heading text-slate-900 dark:text-white">85</span>
+              <span class="text-[10px] text-slate-400 uppercase font-semibold">Score / 100</span>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-slate-500 mt-1" data-i18n="lbl_health_score">Health Score</span>
+        </div>
+
+        <!-- Classifications -->
+        <div class="sm:col-span-2 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500" data-i18n="lbl_quality_category">Quality Category:</span>
+            <span id="res-category-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600">Good</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500" data-i18n="lbl_risk_level">Risk Level:</span>
+            <span id="res-risk-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500 text-white">Low Risk</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500" data-i18n="lbl_drinking_suitability">Drinking Potability:</span>
+            <span id="res-drinking-status" class="text-xs font-bold text-slate-900 dark:text-white">Safe for Direct Drinking</span>
+          </div>
+
+          <!-- Parameter Pills -->
+          <div class="grid grid-cols-3 gap-1.5 pt-2 font-mono text-[11px] text-center">
+            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block text-[9px]">TDS</span>
+              <strong id="res-tds-val" class="text-slate-800 dark:text-slate-200">180 ppm</strong>
+            </div>
+            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block text-[9px]">pH</span>
+              <strong id="res-ph-val" class="text-slate-800 dark:text-slate-200">7.2</strong>
+            </div>
+            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block text-[9px]">Turbidity</span>
+              <strong id="res-turb-val" class="text-slate-800 dark:text-slate-200">0.8 NTU</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Multi-Purpose Usage Matrix -->
+      <div class="space-y-3">
+        <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="lbl_usage_matrix">Multi-Purpose Usage Suitability</h4>
+        <div id="res-usage-matrix-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Detected Problems -->
+      <div class="space-y-2">
+        <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="lbl_detected_problems">Detected Anomalies & Hazards</h4>
+        <div id="res-problems-list" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="space-y-2">
+        <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="lbl_recommendations">Recommended Treatment Protocols</h4>
+        <div id="res-recommendations-list" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Health Warnings -->
+      <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-300 dark:border-rose-900/50 space-y-1">
+        <h4 class="font-bold text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400" data-i18n="lbl_health_warnings">Health Advisories</h4>
+        <div id="res-warnings-list" class="space-y-1">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Final Conclusion -->
+      <div class="p-4 rounded-2xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-900/50 space-y-1 text-xs">
+        <h4 class="font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-wider" data-i18n="lbl_final_conclusion">Scientific Summary & Verdict</h4>
+        <p id="res-conclusion-text" class="text-slate-700 dark:text-slate-300 leading-relaxed"></p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2">
+          <button onclick="window.aquaReports.downloadPDF(window.app.currentTestResult)" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span data-i18n="btn_download_pdf">Download PDF</span>
+          </button>
+          <button onclick="window.aquaReports.printReport(window.app.currentTestResult)" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors" data-i18n="btn_print_report">
+            Print
+          </button>
+          <button onclick="window.aquaReports.shareReport(window.app.currentTestResult)" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors" data-i18n="btn_share">
+            Share
+          </button>
+        </div>
+        <button onclick="window.app.closeResultModal()" class="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors" data-i18n="btn_close">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 2: WATER SOURCE PROFILE & HISTORICAL TIMELINE
+       ========================================================================= -->
+  <div id="source-profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden modal-backdrop">
+    <div class="glass-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 modal-content-animated">
+      
+      <!-- Profile Header -->
+      <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="prof-type-badge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+              Open Well
+            </span>
+            <span id="prof-insight-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
+              STABLE
+            </span>
+          </div>
+          <h3 id="prof-source-name" class="text-2xl font-extrabold font-heading text-slate-900 dark:text-white">
+            Chicholi Main Well
+          </h3>
+          <p id="prof-location" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Chicholi Village, Haveli, Pune
+          </p>
+        </div>
+        <button onclick="window.app.closeSourceProfile()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Key Aggregated Metrics -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold" data-i18n="prof_history_count">Tests Recorded</span>
+          <div id="prof-test-count" class="text-lg font-bold font-heading text-slate-900 dark:text-white mt-0.5">3</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold" data-i18n="prof_avg_score">Avg Health Score</span>
+          <div id="prof-avg-score" class="text-lg font-bold font-heading text-emerald-500 mt-0.5">82 / 100</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold" data-i18n="prof_avg_tds">Avg TDS Level</span>
+          <div id="prof-avg-tds" class="text-lg font-bold font-heading text-cyan-600 dark:text-cyan-400 mt-0.5">510 ppm</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold" data-i18n="prof_last_tested">Last Tested</span>
+          <div id="prof-last-tested" class="text-xs font-bold font-mono text-slate-700 dark:text-slate-300 mt-1">2026-09-05</div>
+        </div>
+      </div>
+
+      <!-- Automated Community Insights Box -->
+      <div class="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-start gap-3">
+        <svg class="w-5 h-5 text-cyan-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div>
+          <h5 class="text-xs font-bold text-cyan-800 dark:text-cyan-300" data-i18n="prof_insights_title">Automated Community Insights</h5>
+          <p id="prof-insight-text" class="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
+            Parameters remain stable across historical monitoring cycles.
+          </p>
+        </div>
+      </div>
+
+      <!-- Historical Chart.js Timeline -->
+      <div class="space-y-2">
+        <h4 class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="prof_timeline_title">Parameter Historical Timeline</h4>
+        <div class="h-60 rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3 border border-slate-200/80 dark:border-slate-800">
+          <canvas id="chart-source-profile-timeline"></canvas>
+        </div>
+      </div>
+
+      <!-- Historical Tests Table -->
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+        <table class="w-full text-left">
+          <thead class="bg-slate-100 dark:bg-slate-800 text-[11px] uppercase font-bold text-slate-500">
+            <tr>
+              <th class="py-2 px-3">Date</th>
+              <th class="py-2 px-3">TDS</th>
+              <th class="py-2 px-3">pH</th>
+              <th class="py-2 px-3">Turbidity</th>
+              <th class="py-2 px-3">Score</th>
+              <th class="py-2 px-3 text-right">Details</th>
+            </tr>
+          </thead>
+          <tbody id="prof-timeline-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Close & Quick Add Test -->
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button onclick="window.app.closeSourceProfile(); window.app.switchView('view-new-test');" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold transition-colors" data-i18n="prof_add_test">
+          + Add New Test for this Source
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 3: DRAGGABLE MAP PICKER
+       ========================================================================= -->
+  <div id="map-picker-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden modal-backdrop">
+    <div class="glass-panel w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 space-y-4 modal-content-animated">
+      <div class="flex items-center justify-between">
+        <div>
+          <h4 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+            Select Exact Water Source Location
+          </h4>
+          <p class="text-xs text-slate-400">Click anywhere or drag the marker to pinpoint the water well or tap</p>
+        </div>
+        <button onclick="window.app.closeLocationPicker()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div id="picker-map" class="w-full h-80 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700"></div>
+
+      <div class="flex items-center justify-between pt-2">
+        <button onclick="window.aquaMap.detectUserLocation()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-cyan-600 dark:text-cyan-400 text-xs font-semibold flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+          Re-detect GPS
+        </button>
+        <button onclick="window.app.closeLocationPicker()" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-md">
+          Confirm Location
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       TOAST NOTIFICATIONS CONTAINER
+       ========================================================================= -->
+  <div id="toast-container" class="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm"></div>
+
+  <!-- =========================================================================
+       MOBILE BOTTOM NAVIGATION BAR
+       ========================================================================= -->
+  <div id="mobile-bottom-nav" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-200/80 dark:border-slate-800/80 px-2 py-2 flex items-center justify-around text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+    <button onclick="window.app.switchView('view-dashboard')" class="flex flex-col items-center gap-1 p-1 hover:text-cyan-500">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+      <span data-i18n="nav_dashboard">Home</span>
+    </button>
+    <button onclick="window.app.switchView('view-new-test')" class="flex flex-col items-center gap-1 p-1 text-cyan-600 dark:text-cyan-400">
+      <div class="w-8 h-8 rounded-full bg-cyan-500 text-white flex items-center justify-center -mt-4 shadow-lg shadow-cyan-500/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      </div>
+      <span data-i18n="nav_new_test">Test</span>
+    </button>
+    <button onclick="window.app.switchView('view-map-db')" class="flex flex-col items-center gap-1 p-1 hover:text-cyan-500">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+      <span data-i18n="nav_map_db">Database</span>
+    </button>
+    <button onclick="window.app.switchView('view-analytics')" class="flex flex-col items-center gap-1 p-1 hover:text-cyan-500">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+      <span data-i18n="nav_analytics">Analytics</span>
+    </button>
+    <button onclick="window.app.switchView('view-academy')" class="flex flex-col items-center gap-1 p-1 hover:text-cyan-500">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+      <span data-i18n="nav_academy">Academy</span>
+    </button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/engine.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/map.js"></script>
+  <script src="assets/js/charts.js"></script>
+  <script src="assets/js/reports.js"></script>
+  <script src="assets/js/app.js"></script>
+
+</body>
+</html>
